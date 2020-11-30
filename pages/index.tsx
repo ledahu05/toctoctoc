@@ -62,10 +62,13 @@ const IndexPage: NextPage = () => {
 
 
   useEffect(() => {
-    audio.addEventListener('ended', () => setPlaying(false));
-    return () => {
-      audio.removeEventListener('ended', () => setPlaying(false));
-    };
+    if (audio !== null) {
+
+      audio.addEventListener('ended', () => setPlaying(false));
+      return () => {
+        audio.removeEventListener('ended', () => setPlaying(false));
+      };
+    }
   }, []);
 
   useEffect(() => {
@@ -84,7 +87,7 @@ const IndexPage: NextPage = () => {
         setTimeout(() => {
           clearInterval(intervalRef.current)
           setWolfState('stopped');
-          if (!playing) audio.play();
+          if (audio !== null && !playing) audio.play();
           if (restart) {
             // console.log('starting inner timeout')
             // setTimeout(() => {
@@ -94,7 +97,7 @@ const IndexPage: NextPage = () => {
             }
 
             setWolfState('started')
-            setTimeout(() => { audio.pause() }, 2000)
+            setTimeout(() => { if (audio !== null) audio.pause() }, 2000)
           }
         }, timerDuration * 1000);
       }
@@ -109,7 +112,7 @@ const IndexPage: NextPage = () => {
 
   const onSubmit = useCallback(() => {
     // console.log('onSubmit playing', playing)
-    if (playing) {
+    if (audio !== null && playing) {
       audio.pause();
       return;
     }
