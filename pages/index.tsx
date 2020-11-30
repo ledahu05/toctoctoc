@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState, useRef, ChangeEvent } from 'react';
 import styled from 'styled-components';
 import { ButtonCTA } from '../components/button';
 import Countdown from '../components/countdown';
-
+import Toggle from 'react-toggle'
+import "react-toggle/style.css"
 import { useDispatch, useSelector } from 'react-redux';
 import { AppState } from '../state/features/types';
 import {
@@ -10,7 +11,7 @@ import {
   setWolfSpeed
 } from '../state/features/wolf/actions';
 import { NextPage } from 'next';
-import useAudio from '../lib/useAudio';
+
 import { floor } from 'lodash';
 
 
@@ -32,62 +33,94 @@ const IndexPage: NextPage = () => {
   });
 
   const [timerDuration, setTimerDuration] = useState(wolfSpeed);
+  const [restart, setRestart] = useState(true);
   const [min, sec] = formatSpeed(wolfSpeed);
-  const [minutes, setMinutes] = useState(min);
-  const [seconds, setSeconds] = useState(sec);
-
-  const [playing, toggle] = useAudio(GONG_URL);
+  const [minutes, setMinutes] = useState(min.toString());
+  const [seconds, setSeconds] = useState(sec.toString());
+  // const [playing, toggle] = useAudio(GONG_URL);
+  // if () return [false, () => { }];
+  const [audio] = useState(typeof window === 'undefined' ? null : new Audio(GONG_URL));
+  const [playing, setPlaying] = useState(false);
 
   const [wolfState, setWolfState] = useState('stopped');
-
-
-
   const [timeLeft, setTimeLeft] = useState(wolfSpeed * 60);
-
-
   const dispatch = useDispatch();
-
-
   const intervalRef = useRef<number>()
 
 
+  const toggleRestart = () => setRestart(!restart)
 
   const onMinutes = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    setMinutes(+e.target.value)
+    setMinutes(e.target.value)
   }, [])
   const onSeconds = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    setSeconds(+e.target.value)
+    setSeconds(e.target.value)
   }, [])
+
+
 
 
 
   useEffect(() => {
+    audio.addEventListener('ended', () => setPlaying(false));
+    return () => {
+      audio.removeEventListener('ended', () => setPlaying(false));
+    };
+  }, []);
+
+  useEffect(() => {
     if (wolfState === 'started') {
       if (intervalRef.current === undefined) {
+        setTimeLeft(timerDuration)
+        // console.log('starting interval');
         intervalRef.current = setInterval(() => {
+          // console.log('setting interval')
           setTimeLeft(old => {
             return old - 1
           });
         }, 1000)
 
+        // console.log('starting outer timeout')
         setTimeout(() => {
           clearInterval(intervalRef.current)
           setWolfState('stopped');
-          if (!playing) toggle();
-        }, wolfSpeed * 60 * 1000);
+          if (!playing) audio.play();
+          if (restart) {
+            // console.log('starting inner timeout')
+            // setTimeout(() => {
+            // console.log('restarting, timerduration, timeleft', timerDuration, timeLeft)
+            if (intervalRef.current !== undefined) {
+              intervalRef.current = undefined
+            }
+
+            setWolfState('started')
+            setTimeout(() => { audio.pause() }, 2000)
+          }
+        }, timerDuration * 1000);
       }
 
 
     } else if (wolfState === 'stopped') {
       console.log('stopped');
     }
-  }, [wolfState, timeLeft, playing, toggle]);
+  }, [wolfState, timeLeft, timerDuration]);
 
 
 
   const onSubmit = useCallback(() => {
+    // console.log('onSubmit playing', playing)
+    if (playing) {
+      audio.pause();
+      return;
+    }
 
-    const speedFloat = minutes + (seconds / 60);
+    if (wolfState === 'started') {
+      return;
+    }
+
+
+    console.log('---------------> Was THERE !!!!!!!!!!!!!!!!!!!!!!!!!')
+    const speedFloat = +minutes + (parseInt(seconds) / 60);
     dispatch(setWolfSpeed(speedFloat));
     setWolfState('started')
     setTimerDuration(speedFloat * 60)
@@ -95,7 +128,7 @@ const IndexPage: NextPage = () => {
     if (intervalRef.current !== undefined) {
       intervalRef.current = undefined
     }
-  }, [timerDuration, minutes, seconds]);
+  }, [timerDuration, minutes, seconds, playing]);
 
   const getCurrentScreen = () => {
     if (wolfState === 'stopped') {
@@ -154,7 +187,17 @@ const IndexPage: NextPage = () => {
                   </label>
                 </div>
               </div>
+
             </TimeWrapper>
+            <div className="self-end mt-3">
+              <label className="flex justify-center">
+                <Toggle
+                  defaultChecked={restart}
+                  onChange={toggleRestart} />
+                <span className="ml-2">Repeat</span>
+              </label>
+            </div>
+
 
 
 

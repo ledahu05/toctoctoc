@@ -5,9 +5,13 @@ const useAudio = (url: string): [boolean, () => void] => {
   const [audio] = useState(new Audio(url));
   const [playing, setPlaying] = useState(false);
 
-  const toggle = () => setPlaying(!playing);
+  const toggle = () => {
+    console.log('toggling audio from playing', playing);
+    setPlaying(!playing);
+  };
 
   useEffect(() => {
+    console.log('playing status was updated', playing);
     playing ? audio.play() : audio.pause();
   }, [playing]);
 
