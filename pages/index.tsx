@@ -11,6 +11,7 @@ import {
 } from '../state/features/wolf/actions';
 import { NextPage } from 'next';
 import useAudio from '../lib/useAudio';
+import { floor } from 'lodash';
 
 
 const GONG_URL = '/sound/gong-doux.mp3'
@@ -20,17 +21,27 @@ const FormContainer = styled.div`
   max-width: 30rem;
 `;
 
+const formatSpeed = (initialSpeed: number): number[] => {
+  return [floor(initialSpeed), (initialSpeed % 1) * 60]
+}
+
+const TimeWrapper = styled.div``
 const IndexPage: NextPage = () => {
   const { wolfSpeed } = useSelector((state: AppState) => {
     return state.wolf;
   });
 
+  const [timerDuration, setTimerDuration] = useState(wolfSpeed);
+  const [min, sec] = formatSpeed(wolfSpeed);
+  const [minutes, setMinutes] = useState(min);
+  const [seconds, setSeconds] = useState(sec);
 
   const [playing, toggle] = useAudio(GONG_URL);
 
   const [wolfState, setWolfState] = useState('stopped');
-  // const [userState, setUserState] = useState('stopped');
-  const [speed, setSpeed] = useState(wolfSpeed.toString());
+
+
+
   const [timeLeft, setTimeLeft] = useState(wolfSpeed * 60);
 
 
@@ -40,24 +51,28 @@ const IndexPage: NextPage = () => {
   const intervalRef = useRef<number>()
 
 
-  const onInput = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    setSpeed(e.target.value)
+
+  const onMinutes = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setMinutes(+e.target.value)
   }, [])
+  const onSeconds = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setSeconds(+e.target.value)
+  }, [])
+
+
+
   useEffect(() => {
     if (wolfState === 'started') {
       if (intervalRef.current === undefined) {
-        console.log('started', timeLeft, wolfSpeed * 60)
         intervalRef.current = setInterval(() => {
           setTimeLeft(old => {
             return old - 1
           });
         }, 1000)
 
-        console.log('creating timeout')
         setTimeout(() => {
           clearInterval(intervalRef.current)
           setWolfState('stopped');
-          console.log('done')
           if (!playing) toggle();
         }, wolfSpeed * 60 * 1000);
       }
@@ -71,15 +86,16 @@ const IndexPage: NextPage = () => {
 
 
   const onSubmit = useCallback(() => {
-    const speedFloat = parseFloat(speed);
-    console.log('submitting: ', speedFloat)
+
+    const speedFloat = minutes + (seconds / 60);
     dispatch(setWolfSpeed(speedFloat));
     setWolfState('started')
+    setTimerDuration(speedFloat * 60)
     setTimeLeft(speedFloat * 60)
     if (intervalRef.current !== undefined) {
       intervalRef.current = undefined
     }
-  }, [speed]);
+  }, [timerDuration, minutes, seconds]);
 
   const getCurrentScreen = () => {
     if (wolfState === 'stopped') {
@@ -87,7 +103,7 @@ const IndexPage: NextPage = () => {
         <div className='flex justify-center'>
 
 
-          <FormContainer className='form-container flex flex-col items-center'>
+          <FormContainer className='form-container flex flex-col items-center max-w-xl'>
             <h1 className='text-4xl text-center text-gray-700 dark:text-gray-100'>
               Toc toc toc
               </h1>
@@ -98,14 +114,15 @@ const IndexPage: NextPage = () => {
                 onClick={onSubmit}
               ></ButtonCTA>
             </ButtonContainer>
-            <div className='flex items-center'>
-              <div className='mt-1 relative rounded-md shadow-sm '>
+
+            <TimeWrapper className="flex justify-between w-full">
+              <div className='mt-1 relative rounded-md shadow-sm md:mr-5'>
                 <input
-                  value={speed}
-                  onChange={onInput}
-                  type='text'
-                  id='speed'
-                  className='w-32 focus:ring-indigo-500 focus:border-indigo-500 block  pl-7 pr-12 sm:text-sm border-gray-300 rounded-md'
+                  value={minutes}
+                  onChange={onMinutes}
+                  type='number'
+                  id='minutes'
+                  className='w-full focus:ring-indigo-500 focus:border-indigo-500 block  pl-7 pr-12 sm:text-sm border-gray-300 rounded-md'
                   placeholder='0'
                 />
 
@@ -118,16 +135,28 @@ const IndexPage: NextPage = () => {
                   </label>
                 </div>
               </div>
-              <div className='px-4 py-3 bg-gray-50 text-right sm:px-6'>
-                <button
-                  onClick={onSubmit}
-                  type='submit'
-                  className='mt-1 h-10 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
-                >
-                  Démarrer le minuteur
-                </button>
+              <div className='mt-1 relative rounded-md shadow-sm '>
+                <input
+                  value={seconds}
+                  onChange={onSeconds}
+                  type='number'
+                  id='minutes'
+                  className='w-full focus:ring-indigo-500 focus:border-indigo-500 block  pl-7 pr-12 sm:text-sm border-gray-300 rounded-md'
+                  placeholder='0'
+                />
+
+                <div className='absolute inset-y-0 right-0 flex items-center justify-center'>
+                  <label htmlFor='time' className='sr-only'>
+                    Unit of time
+                  </label>
+                  <label className='flex items-center justify-center h-full py-0 pl-2 pr-7 border-transparent bg-transparent text-gray-500 sm:text-sm rounded-md'>
+                    secs
+                  </label>
+                </div>
               </div>
-            </div>
+            </TimeWrapper>
+
+
 
 
           </FormContainer>
@@ -143,7 +172,7 @@ const IndexPage: NextPage = () => {
               Toc toc toc
           </h1>
 
-            <Countdown time={parseFloat(speed) * 60} timeLeft={timeLeft} />
+            <Countdown time={timerDuration} timeLeft={timeLeft} />
           </FormContainer>
         </div>
 

@@ -1,7 +1,9 @@
 import React from 'react'
 import styled from 'styled-components'
-import Image from 'next/image'
+// import Image from 'next/image'
 import cn from 'classnames'
+
+const Image = styled.img``
 
 
 const ButtonWrapper = styled.div`
@@ -29,10 +31,10 @@ export const ButtonCTA: React.FC<{ imageRelativeURL: string, variant: ButtonVari
     <ButtonWrapper className="rounded-md shadow" onClick={onClick}>
       <ButtonLabel className={classes} >
 
-        <div style={{ position: 'relative', width: '180px', height: '180px' }}>
+        {/* <div style={{ position: 'relative', width: '180px', height: '180px' }}> */}
 
-          <Image src={imageRelativeURL} layout="fill" objectFit="cover" />
-        </div>
+        <Image src={imageRelativeURL} />
+        {/* </div> */}
 
         {children}
       </ButtonLabel>
