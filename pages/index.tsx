@@ -143,7 +143,7 @@ const IndexPage: NextPage = () => {
               Toc toc toc
           </h1>
 
-            <Countdown time={speed * 60} timeLeft={timeLeft} />
+            <Countdown time={parseFloat(speed) * 60} timeLeft={timeLeft} />
           </FormContainer>
         </div>
 

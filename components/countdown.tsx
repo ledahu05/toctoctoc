@@ -119,7 +119,7 @@ const Countdown: React.FC<{ time: number; timeLeft: number }> = ({ time, timeLef
     // const fraction = Math.round(FULL_DASH_ARRAY * timeLeft / time)
     setTimeFraction((calculateTimeFraction(time, timeLeft) * FULL_DASH_ARRAY))
 
-    const { alert, warning, info } = COLOR_CODES;
+    const { alert, warning } = COLOR_CODES;
     if (timeLeft <= alert.threshold) {
       setRemainingPathColor(alert.color);
 

@@ -1,12 +1,9 @@
 import { useMemo } from 'react'
 import { CombinedState, createStore, Store, applyMiddleware } from 'redux'
 import { composeWithDevTools } from 'redux-devtools-extension'
-import { rootReducer, rootSaga } from './features'
-import sagaMiddleware from './middlewares/sagas'
-// import sagaMiddleware from './middlewares/sagas'
+import { rootReducer } from './features'
+
 import { AppActions, AppState } from './features/types'
-import { loadState, saveState } from './localStorage'
-import throttle from 'lodash/throttle'
 import initialState from './initialState'
 
 declare global {
@@ -28,9 +25,8 @@ export default function configureStore(preloadedState = initialState): Store<App
   const store = createStore(
     rootReducer,
     preloadedState,
-    composeWithDevTools(applyMiddleware(sagaMiddleware))
+    composeWithDevTools(applyMiddleware())
   )
-  sagaMiddleware.run(rootSaga)
 
 
 
