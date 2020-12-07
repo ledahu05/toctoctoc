@@ -10,7 +10,6 @@ import styled from 'styled-components';
 import { ButtonCTA } from '../components/button';
 import Countdown from '../components/countdown';
 
-// import Toggle from 'react-toggle';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppState } from '../state/features/types';
 import { setWolfSpeed } from '../state/features/wolf/actions';
@@ -41,7 +40,7 @@ const IndexPage: NextPage = () => {
 
   const [timerDuration, setTimerDuration] = useState(wolfSpeed);
   const [timerTotalTimeRun, setTimerTotalTimeRun] = useState(0);
-  const [restart, setRestart] = useState(true);
+
   const [repeat, setRepeat] = useState(0);
   const [remainingRepeat, setRemainingRepeat] = useState(0);
   // const [pauseTimer, setPauseTimer] = useState(false);
@@ -75,7 +74,6 @@ const IndexPage: NextPage = () => {
     }
     // console.log('pauseRef.current', pauseRef.current);
   };
-  const toggleRestart = () => setRestart(!restart);
 
   const onMinutes = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
@@ -106,7 +104,7 @@ const IndexPage: NextPage = () => {
         if (timerRef.current !== undefined) {
           clearTimeout(timerRef.current);
 
-          setTimerTotalTimeRun((old) => countdown - timeLeft * 1000);
+          setTimerTotalTimeRun(countdown - timeLeft * 1000);
           complete = timeLeft === 0;
           // console.log(
           //   'cancelling timout',
