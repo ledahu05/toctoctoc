@@ -16,11 +16,11 @@ import { setWolfSpeed } from '../state/features/wolf/actions';
 import { NextPage } from 'next';
 
 import { floor } from 'lodash';
-import Alarm, { SoundStatus } from '../components/alarm';
+import Alarm, { SoundStatus, SoundVolume } from '../components/alarm';
 import useLock from '../components/useLock';
 import IncrementField from '../components/incrementField';
 
-const GONG_URL = '/sound/gong-doux.mp3';
+const GONG_URL = '/sound/intermediate.mp3';
 const CLOCK_URL = '/images/reveil.svg';
 const ButtonContainer = styled.div``;
 const FormContainer = styled.div`
@@ -50,6 +50,7 @@ const IndexPage: NextPage = () => {
   const [soundStatus, setSoundStatus] = useState<SoundStatus>(
     'STOPPED',
   );
+  const [soundVolume, setSoundVolume] = useState<SoundVolume>(60);
 
   const [timerState, setTimerState] = useState<TimerStatus>(
     'STOPPED',
@@ -286,10 +287,12 @@ const IndexPage: NextPage = () => {
               soundStatus={soundStatus}
               setSoundStatus={setSoundStatus}
               toggleTimer={toggleTimer}
+              setSoundVolume={setSoundVolume}
             />
             <Alarm
               url={GONG_URL}
               soundStatus={soundStatus}
+              soundVolume={soundVolume}
               setSoundStatus={setSoundStatus}
             />
           </FormContainer>

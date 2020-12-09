@@ -5,9 +5,15 @@ import React, {
   useEffect,
   Dispatch,
   SetStateAction,
+  useRef,
 } from 'react';
 import styled from 'styled-components';
-import { SoundStatus } from './alarm';
+import {
+  SoundStatus,
+  SoundVolume,
+  FinalVolume,
+  IntermediateVolume,
+} from './alarm';
 
 const CountdownContainer = styled.div<{ remainingPathColor: string }>`
   width: 20rem;
@@ -88,10 +94,12 @@ const CountdownContainer = styled.div<{ remainingPathColor: string }>`
   }
 `;
 
-const WARNING_THRESHOLD = 10;
+const INTERMEDIATE_SOUND_DURATION = 5000;
+const RECURRENT_INTERMEDIATE_THRESHOLD = 20;
+const WARNING_THRESHOLD = 60;
 
 // Alert occurs at 5s
-const ALERT_THRESHOLD = 5;
+const ALERT_THRESHOLD = 20;
 
 const COLOR_CODES = {
   info: {
@@ -123,6 +131,7 @@ interface CountdownProps {
   time: number;
   timeLeft: number;
   setSoundStatus: Dispatch<SetStateAction<SoundStatus>>;
+  setSoundVolume: Dispatch<SetStateAction<SoundVolume>>;
   soundStatus: SoundStatus;
   toggleTimer: () => void;
 }
@@ -133,11 +142,30 @@ const Countdown: React.FC<CountdownProps> = ({
   setSoundStatus,
   soundStatus,
   toggleTimer,
+  setSoundVolume,
 }) => {
+  const playSound = (
+    volume: SoundVolume,
+    ref: React.MutableRefObject<number | undefined>,
+    soundDuration: number,
+  ): void => {
+    if (ref.current === undefined) {
+      console.log('playing final gong');
+      setSoundVolume(volume);
+      setSoundStatus('PLAYING');
+      timerRef.current = setTimeout(() => {
+        setSoundStatus('STOPPED');
+        timerRef.current = undefined;
+      }, soundDuration);
+    }
+  };
+
   const [timeFraction, setTimeFraction] = useState(FULL_DASH_ARRAY);
   const [remainingPathColor, setRemainingPathColor] = useState(
     COLOR_CODES.info.color,
   );
+  const timerRef = useRef<number>();
+
   useEffect(() => {
     // const fraction = Math.round(FULL_DASH_ARRAY * timeLeft / time)
     setTimeFraction(
@@ -145,6 +173,32 @@ const Countdown: React.FC<CountdownProps> = ({
     );
 
     const { alert, warning } = COLOR_CODES;
+
+    console.log(
+      'timeLeft:',
+      timeLeft,
+      warning.threshold,
+      timeLeft % RECURRENT_INTERMEDIATE_THRESHOLD,
+    );
+    if (
+      timeLeft > warning.threshold &&
+      timeLeft % RECURRENT_INTERMEDIATE_THRESHOLD === 0
+    ) {
+      playSound(
+        IntermediateVolume,
+        timerRef,
+        INTERMEDIATE_SOUND_DURATION,
+      );
+      // if (timerRef.current === undefined) {
+      //   setSoundVolume(IntermediateVolume);
+      //   setSoundStatus('PLAYING');
+      //   timerRef.current = setTimeout(() => {
+      //     setSoundStatus('STOPPED');
+      //     timerRef.current = undefined;
+      //   }, INTERMEDIATE_SOUND_DURATION);
+      // }
+    }
+
     if (timeLeft <= alert.threshold) {
       setRemainingPathColor(alert.color);
 
@@ -154,7 +208,24 @@ const Countdown: React.FC<CountdownProps> = ({
           soundStatus,
           timeLeft,
         );
-        setSoundStatus('PLAYING');
+
+        if (timeLeft * 1000 > INTERMEDIATE_SOUND_DURATION) {
+          playSound(
+            FinalVolume,
+            timerRef,
+            INTERMEDIATE_SOUND_DURATION,
+          );
+          // console.log('playing final gong');
+          // setSoundVolume(FinalVolume);
+          // setSoundStatus('PLAYING');
+          // timerRef.current = setTimeout(() => {
+          //   setSoundStatus('STOPPED');
+          //   timerRef.current = undefined;
+          // }, INTERMEDIATE_SOUND_DURATION);
+        }
+
+        // setSoundStatus('PLAYING');
+        // setSoundVolume(FinalVolume);
       }
 
       // If the remaining time is less than or equal to 10, remove the base color and apply the "warning" class.
