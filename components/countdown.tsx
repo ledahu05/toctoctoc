@@ -95,7 +95,7 @@ const CountdownContainer = styled.div<{ remainingPathColor: string }>`
 `;
 
 const INTERMEDIATE_SOUND_DURATION = 5000;
-const RECURRENT_INTERMEDIATE_THRESHOLD = 20;
+const RECURRENT_INTERMEDIATE_THRESHOLD = 300;
 const WARNING_THRESHOLD = 60;
 
 // Alert occurs at 5s
